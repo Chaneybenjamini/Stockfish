@@ -518,14 +518,25 @@ namespace Stockfish::Eval::NNUE {
           for (IndexType k = 0; k < NumRegs; ++k)
             acc[k] = biasesTile[k];
 
-          for (const auto index : active)
+          size_t active_size = active.size();
+          for (size_t indicies_it = 0; indicies_it < active_size - 1; indicies_it++)
           {
+            IndexType nextIndex = active[indicies_it + 1];
+            const IndexType nextOffset = HalfDimensions * nextIndex + j * TileHeight;
+            auto nextColumn = reinterpret_cast<const vec_t*>(&weights[nextOffset]);
+            for(size_t i = 0; i < NumRegs; i+= 64 / sizeof(vec_t))
+             __builtin_prefetch(&nextColumn[i]);
+            IndexType index = active[indicies_it];
             const IndexType offset = HalfDimensions * index + j * TileHeight;
             auto column = reinterpret_cast<const vec_t*>(&weights[offset]);
-
             for (unsigned k = 0; k < NumRegs; ++k)
               acc[k] = vec_add_16(acc[k], column[k]);
           }
+          IndexType index = active[active_size-1];
+          const IndexType offset = HalfDimensions * index + j * TileHeight;
+          auto column = reinterpret_cast<const vec_t*>(&weights[offset]);
+          for (unsigned k = 0; k < NumRegs; ++k)
+            acc[k] = vec_add_16(acc[k], column[k]);
 
           auto accTile = reinterpret_cast<vec_t*>(
               &accumulator.accumulation[perspective][j * TileHeight]);

@@ -73,6 +73,7 @@ VPATH = syzygy:nnue:nnue/features
 # ----------------------------------------------------------------------------
 #
 # debug = yes/no      --- -DNDEBUG         --- Enable/Disable debug mode
+# native = yes/no     --- -march=native    --- Enable/Disable native build
 # sanitize = none/<sanitizer> ... (-fsanitize )
 #                     --- ( undefined )    --- enable undefined behavior checks
 #                     --- ( thread    )    --- enable threading error checks
@@ -123,6 +124,7 @@ else
 endif
 
 optimize = yes
+native = yes
 debug = no
 sanitize = none
 bits = 64
@@ -525,6 +527,10 @@ else
 	CXXFLAGS += -g
 endif
 
+ifeq ($(native),yes)
+	CXXFLAGS += -march=native
+endif
+
 ### 3.2.2 Debugging with undefined behavior sanitizers
 ifneq ($(sanitize),none)
         CXXFLAGS += -g3 $(addprefix -fsanitize=,$(sanitize))
@@ -868,6 +874,7 @@ config-sanity: net
 	@echo ""
 	@echo "Config:"
 	@echo "debug: '$(debug)'"
+	@echo "native: '$(native)'"
 	@echo "sanitize: '$(sanitize)'"
 	@echo "optimize: '$(optimize)'"
 	@echo "arch: '$(arch)'"
@@ -898,6 +905,7 @@ config-sanity: net
 	@echo "Testing config sanity. If this fails, try 'make help' ..."
 	@echo ""
 	@test "$(debug)" = "yes" || test "$(debug)" = "no"
+	@test "$(native)" = "yes" || test "$(native)" = "no"
 	@test "$(optimize)" = "yes" || test "$(optimize)" = "no"
 	@test "$(SUPPORTED_ARCH)" = "true"
 	@test "$(arch)" = "any" || test "$(arch)" = "x86_64" || test "$(arch)" = "i386" || \

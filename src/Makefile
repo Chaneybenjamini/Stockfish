@@ -162,6 +162,12 @@ else
 	sse2 = yes
 endif
 
+ifeq ($(ARCH),apple-silicon)
+	#Disable native builds by default on apple silicon
+	#The compiiler does not support the necessary flag
+	native = no
+endif
+
 ifeq ($(findstring -sse,$(ARCH)),-sse)
 	sse = yes
 endif

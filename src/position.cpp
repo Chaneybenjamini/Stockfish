@@ -274,6 +274,7 @@ Position& Position::set(const string& fenStr, bool isChess960, StateInfo* si, Th
 
   // 5-6. Halfmove clock and fullmove number
   ss >> std::skipws >> st->rule50 >> gamePly;
+  st->cap_ply = st->rule50;
 
   // Convert from fullmove starting from 1 to gamePly starting from 0,
   // handle also common incorrect FEN with fullmove = 0.

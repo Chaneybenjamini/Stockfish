@@ -850,6 +850,7 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
 
           // Update material
           st->nonPawnMaterial[us] += PieceValue[MG][promotion];
+          st->cap_ply = 0;
       }
 
       // Update pawn hash key

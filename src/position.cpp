@@ -699,6 +699,7 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
   // in case of a capture or a pawn move.
   ++gamePly;
   ++st->rule50;
+  ++st->cap_ply;
   ++st->pliesFromNull;
 
   // Used by NNUE
@@ -775,6 +776,7 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
 
       // Reset rule 50 counter
       st->rule50 = 0;
+      st->cap_ply = 0;
   }
 
   // Update hash key

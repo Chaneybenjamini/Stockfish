@@ -1113,7 +1113,7 @@ Value Eval::evaluate(const Position& pos) {
   }
 
   // Damp down the evaluation linearly when shuffling
-  int shuffle_counter = std::min(pos.cap_ply(), 195);
+  int shuffle_counter = std::min(pos.cap_ply(), 100);
   v = v * (195 - shuffle_counter) / 211;
 
   // Guarantee evaluation does not hit the tablebase range

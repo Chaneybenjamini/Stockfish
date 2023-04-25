@@ -1065,8 +1065,7 @@ Value Eval::evaluate(const Position& pos) {
       int nnueComplexity;
       int scale = 1001 + pos.non_pawn_material() / 64;
 
-      Color stm = pos.side_to_move();
-      Value optimism = pos.this_thread()->optimism[stm];
+      Value optimism = pos.this_thread()->optimism;
 
       Value nnue = NNUE::evaluate(pos, true, &nnueComplexity);
 
@@ -1107,8 +1106,7 @@ std::string Eval::trace(Position& pos) {
 
   // Reset any global variable used in eval
   pos.this_thread()->bestValue       = VALUE_ZERO;
-  pos.this_thread()->optimism[WHITE] = VALUE_ZERO;
-  pos.this_thread()->optimism[BLACK] = VALUE_ZERO;
+  pos.this_thread()->optimism = VALUE_ZERO;
 
   v = Evaluation<TRACE>(pos).value();
 

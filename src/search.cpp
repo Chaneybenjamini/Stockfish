@@ -368,9 +368,6 @@ void Thread::search() {
           // search the already searched PV lines are preserved.
           std::stable_sort(rootMoves.begin() + pvIdx, rootMoves.begin() + pvLast);
 
-          // Sort the PV lines searched so far and update the GUI
-          std::stable_sort(rootMoves.begin() + pvFirst, rootMoves.begin() + pvIdx + 1);
-
           if (    mainThread
               && (Threads.stop || pvIdx + 1 == multiPV || Time.elapsed() > 3000))
               sync_cout << UCI::pv(rootPos, rootDepth) << sync_endl;

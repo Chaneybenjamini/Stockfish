@@ -268,7 +268,7 @@ void Thread::search() {
   // The latter is needed for statScore and killer initialization.
   Stack stack[MAX_PLY+10], *ss = stack+7;
   Move  pv[MAX_PLY+1];
-  Value alpha, beta, delta;
+  Value alpha, beta;
   Move  lastBestMove = MOVE_NONE;
   Depth lastBestMoveDepth = 0;
   MainThread* mainThread = (this == Threads.main() ? Threads.main() : nullptr);
@@ -348,7 +348,6 @@ void Thread::search() {
 
           // Reset aspiration window starting size
           Value prev = rootMoves[pvIdx].averageScore;
-          delta = Value(10) + int(prev) * prev / 16502;
           alpha = -VALUE_INFINITE;
           beta  = VALUE_INFINITE;
 
@@ -357,62 +356,17 @@ void Thread::search() {
           optimism[ us] = Value(opt);
           optimism[~us] = -optimism[us];
 
-          // Start with a small aspiration window and, in the case of a fail
-          // high/low, re-search with a bigger window until we don't fail
-          // high/low anymore.
-          int failedHighCnt = 0;
-          while (true)
-          {
-              // Adjust the effective depth searched, but ensuring at least one effective increment for every
-              // four searchAgain steps (see issue #2717).
-              Depth adjustedDepth = std::max(1, rootDepth - failedHighCnt - 3 * (searchAgainCounter + 1) / 4);
-              bestValue = Stockfish::search<Root>(rootPos, ss, alpha, beta, adjustedDepth, false);
-
-              // Bring the best move to the front. It is critical that sorting
-              // is done with a stable algorithm because all the values but the
-              // first and eventually the new best one are set to -VALUE_INFINITE
-              // and we want to keep the same order for all the moves except the
-              // new PV that goes to the front. Note that in case of MultiPV
-              // search the already searched PV lines are preserved.
-              std::stable_sort(rootMoves.begin() + pvIdx, rootMoves.begin() + pvLast);
-
-              // If search has been stopped, we break immediately. Sorting is
-              // safe because RootMoves is still valid, although it refers to
-              // the previous iteration.
-              if (Threads.stop)
-                  break;
-
-              // When failing high/low give some update (without cluttering
-              // the UI) before a re-search.
-              if (   mainThread
-                  && multiPV == 1
-                  && (bestValue <= alpha || bestValue >= beta)
-                  && Time.elapsed() > 3000)
-                  sync_cout << UCI::pv(rootPos, rootDepth) << sync_endl;
-
-              // In case of failing low/high increase aspiration window and
-              // re-search, otherwise exit the loop.
-              if (bestValue <= alpha)
-              {
-                  beta = (alpha + beta) / 2;
-                  alpha = std::max(bestValue - delta, -VALUE_INFINITE);
-
-                  failedHighCnt = 0;
-                  if (mainThread)
-                      mainThread->stopOnPonderhit = false;
-              }
-              else if (bestValue >= beta)
-              {
-                  beta = std::min(bestValue + delta, VALUE_INFINITE);
-                  ++failedHighCnt;
-              }
-              else
-                  break;
-
-              delta += delta / 4 + 2;
-
-              assert(alpha >= -VALUE_INFINITE && beta <= VALUE_INFINITE);
-          }
+          // Adjust the effective depth searched, but ensuring at least one effective increment for every
+          // four searchAgain steps (see issue #2717).
+          Depth adjustedDepth = std::max(1, rootDepth - 3 * (searchAgainCounter + 1) / 4);
+          bestValue = Stockfish::search<Root>(rootPos, ss, alpha, beta, adjustedDepth, false);
+          // Bring the best move to the front. It is critical that sorting
+          // is done with a stable algorithm because all the values but the
+          // first and eventually the new best one are set to -VALUE_INFINITE
+          // and we want to keep the same order for all the moves except the
+          // new PV that goes to the front. Note that in case of MultiPV
+          // search the already searched PV lines are preserved.
+          std::stable_sort(rootMoves.begin() + pvIdx, rootMoves.begin() + pvLast);
 
           // Sort the PV lines searched so far and update the GUI
           std::stable_sort(rootMoves.begin() + pvFirst, rootMoves.begin() + pvIdx + 1);

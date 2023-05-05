@@ -617,9 +617,10 @@ namespace {
     if (  !PvNode
         && ss->ttHit
         && !excludedMove
-        && tte->depth() > depth - (tte->bound() == BOUND_EXACT)
         && ttValue != VALUE_NONE // Possible in case of TT access race
-        && (tte->bound() & (ttValue >= beta ? BOUND_LOWER : BOUND_UPPER)))
+        && (tte->bound() & (ttValue >= beta ? BOUND_LOWER : BOUND_UPPER))
+        && (tte->depth() > depth - (tte->bound() == BOUND_EXACT)
+            || (ttValue > VALUE_MATE_IN_MAX_PLY && alpha < VALUE_MATE_IN_MAX_PLY)))
     {
         // If ttMove is quiet, update move sorting heuristics on TT hit (~2 Elo)
         if (ttMove)
